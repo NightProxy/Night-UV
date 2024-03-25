@@ -38,13 +38,13 @@ import { BareClient } from '@tomphttp/bare-client';
 import EventEmitter from 'events';
 
 /**
- * @typedef {import('../uv.js').UVConfig} UVConfig
+ * @typedef {import('../uv.js').UVv2Config} UVv2Config
  */
 
-class Ultraviolet {
+class UltravioletV2 {
     /**
      *
-     * @param {UVConfig} [options]
+     * @param {UVv2Config} [options]
      */
     constructor(options = {}) {
         this.prefix = options.prefix || '/service/';
@@ -69,14 +69,14 @@ class Ultraviolet {
             '/uv.client.js';
         this.configScript = options.config || '/uv.config.js';
         this.meta.url ||= this.meta.base || '';
-        this.codec = Ultraviolet.codec;
+        this.codec = UltravioletV2.codec;
         this.html = new HTML(this);
         this.css = new CSS(this);
         this.js = new JS(this);
         this.openDB = this.constructor.openDB;
-        this.master = '__uv';
-        this.dataPrefix = '__uv$';
-        this.attributePrefix = '__uv';
+        this.master = '__uvv2';
+        this.dataPrefix = '__uvv2$';
+        this.attributePrefix = '__uvv2';
         this.createHtmlInject = createHtmlInject;
         this.createJsInject = createJsInject;
         this.attrs = {
@@ -86,7 +86,7 @@ class Ultraviolet {
             isSrcset,
             isStyle,
         };
-        if (!this.vanilla) this.implementUVMiddleware();
+        if (!this.vanilla) this.implementUVv2Middleware();
         this.cookie = {
             validateCookie,
             db: () => {
@@ -152,7 +152,7 @@ class Ultraviolet {
     decodeUrl(str) {
         return decodeURIComponent(str);
     }
-    implementUVMiddleware() {
+    implementUVv2Middleware() {
         // HTML
         attributes(this);
         text(this);
@@ -194,5 +194,5 @@ class Ultraviolet {
     static EventEmitter = EventEmitter;
 }
 
-export default Ultraviolet;
-if (typeof self === 'object') self.Ultraviolet = Ultraviolet;
+export default UltravioletV2;
+if (typeof self === 'object') self.UltravioletV2 = UltravioletV2;

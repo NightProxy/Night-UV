@@ -30,7 +30,7 @@ import WebSocketApi from './requests/websocket.js';
  * @property {WrapFun} [set]
  */
 
-class UVClient extends EventEmitter {
+class UVv2Client extends EventEmitter {
     /**
      *
      * @param {typeof globalThis} window
@@ -170,5 +170,5 @@ class UVClient extends EventEmitter {
     }
 }
 
-export default UVClient;
-if (typeof self === 'object') self.UVClient = UVClient;
+export default UVv2Client;
+if (typeof self === 'object') self.UVv2Client = UVv2Client;

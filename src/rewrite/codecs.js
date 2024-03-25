@@ -46,7 +46,7 @@ export const base64 = {
         if (!str) return str;
         str = str.toString();
         const b64chs = Array.from(
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='
+            'ABCDEFGHIJKLMNOPQRSTUVv2WXYZabcdefghijklmnopqrstuvwxyz0123456789+/='
         );
         let u32;
         let c0;

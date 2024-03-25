@@ -1,5 +1,5 @@
-declare const uvPath: string;
+declare const uvV2Path: string;
 
-export { uvPath };
+export { uvV2Path };
 
 export * from '../uv';

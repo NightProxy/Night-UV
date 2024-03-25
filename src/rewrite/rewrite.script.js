@@ -1,12 +1,12 @@
 import { Syntax } from 'esotope-hammerhead';
 
 /**
- * @typedef {import('./index').default} Ultraviolet
+ * @typedef {import('./index').default} UltravioletV2
  */
 
 /**
  *
- * @param {Ultraviolet} ctx
+ * @param {UltravioletV2} ctx
  */
 function property(ctx) {
     const { js } = ctx;
@@ -15,7 +15,7 @@ function property(ctx) {
 
         if (type === 'rewrite' && computedProperty(node)) {
             data.changes.push({
-                node: '__uv.$wrap((',
+                node: '__uvv2.$wrap((',
                 start: node.property.start,
                 end: node.property.start,
             });
@@ -32,14 +32,14 @@ function property(ctx) {
             (!node.computed &&
                 node.property.name === 'location' &&
                 type === 'rewrite') ||
-            (node.property.name === '__uv$location' && type === 'source')
+            (node.property.name === '__uvv2$location' && type === 'source')
         ) {
             data.changes.push({
                 start: node.property.start,
                 end: node.property.end,
                 node:
                     type === 'rewrite'
-                        ? '__uv$setSource(__uv).__uv$location'
+                        ? '__uvv2$setSource(__uvv2).__uvv2$location'
                         : 'location',
             });
         }
@@ -48,14 +48,14 @@ function property(ctx) {
             (!node.computed &&
                 node.property.name === 'top' &&
                 type === 'rewrite') ||
-            (node.property.name === '__uv$top' && type === 'source')
+            (node.property.name === '__uvv2$top' && type === 'source')
         ) {
             data.changes.push({
                 start: node.property.start,
                 end: node.property.end,
                 node:
                     type === 'rewrite'
-                        ? '__uv$setSource(__uv).__uv$top'
+                        ? '__uvv2$setSource(__uvv2).__uvv2$top'
                         : 'top',
             });
         }
@@ -64,14 +64,14 @@ function property(ctx) {
             (!node.computed &&
                 node.property.name === 'parent' &&
                 type === 'rewrite') ||
-            (node.property.name === '__uv$parent' && type === 'source')
+            (node.property.name === '__uvv2$parent' && type === 'source')
         ) {
             data.changes.push({
                 start: node.property.start,
                 end: node.property.end,
                 node:
                     type === 'rewrite'
-                        ? '__uv$setSource(__uv).__uv$parent'
+                        ? '__uvv2$setSource(__uvv2).__uvv2$parent'
                         : 'parent',
             });
         }
@@ -84,7 +84,7 @@ function property(ctx) {
             data.changes.push({
                 start: node.property.start,
                 end: node.property.end,
-                node: '__uv$setSource(__uv).postMessage',
+                node: '__uvv2$setSource(__uvv2).postMessage',
             });
         }
 
@@ -92,21 +92,21 @@ function property(ctx) {
             (!node.computed &&
                 node.property.name === 'eval' &&
                 type === 'rewrite') ||
-            (node.property.name === '__uv$eval' && type === 'source')
+            (node.property.name === '__uvv2$eval' && type === 'source')
         ) {
             data.changes.push({
                 start: node.property.start,
                 end: node.property.end,
                 node:
                     type === 'rewrite'
-                        ? '__uv$setSource(__uv).__uv$eval'
+                        ? '__uvv2$setSource(__uvv2).__uvv2$eval'
                         : 'eval',
             });
         }
 
         if (
             !node.computed &&
-            node.property.name === '__uv$setSource' &&
+            node.property.name === '__uvv2$setSource' &&
             type === 'source' &&
             node.parent.type === Syntax.CallExpression
         ) {
@@ -128,7 +128,7 @@ function property(ctx) {
 
 /**
  *
- * @param {Ultraviolet} ctx
+ * @param {UltravioletV2} ctx
  */
 function identifier(ctx) {
     const { js } = ctx;
@@ -192,14 +192,14 @@ function identifier(ctx) {
         data.changes.push({
             start: node.start,
             end: node.end,
-            node: '__uv.$get(' + node.name + ')',
+            node: '__uvv2.$get(' + node.name + ')',
         });
     });
 }
 
 /**
  *
- * @param {Ultraviolet} ctx
+ * @param {UltravioletV2} ctx
  */
 function wrapEval(ctx) {
     const { js } = ctx;
@@ -212,7 +212,7 @@ function wrapEval(ctx) {
         const [script] = node.arguments;
 
         data.changes.push({
-            node: '__uv.js.rewrite(',
+            node: '__uvv2.js.rewrite(',
             start: script.start,
             end: script.start,
         });
@@ -228,7 +228,7 @@ function wrapEval(ctx) {
 
 /**
  *
- * @param {Ultraviolet} ctx
+ * @param {UltravioletV2} ctx
  */
 function importDeclaration(ctx) {
     const { js } = ctx;
@@ -256,7 +256,7 @@ function importDeclaration(ctx) {
 
 /**
  *
- * @param {Ultraviolet} ctx
+ * @param {UltravioletV2} ctx
  */
 function dynamicImport(ctx) {
     const { js } = ctx;
@@ -265,7 +265,7 @@ function dynamicImport(ctx) {
         data.changes.push({
             // pass script URL to dynamicImport
             // import() is always relative to script URL
-            node: `__uv.rewriteImport(${JSON.stringify(ctx.meta.url)},`,
+            node: `__uvv2.rewriteImport(${JSON.stringify(ctx.meta.url)},`,
             start: node.source.start,
             end: node.source.start,
         });
@@ -281,7 +281,7 @@ function dynamicImport(ctx) {
 
 /**
  *
- * @param {Ultraviolet} ctx
+ * @param {UltravioletV2} ctx
  */
 function unwrap(ctx) {
     const { js } = ctx;
@@ -353,7 +353,7 @@ function unwrap(ctx) {
 function isWrapped(node) {
     if (node.type !== Syntax.MemberExpression) return false;
     if (node.property.name === 'rewrite' && isWrapped(node.object)) return true;
-    if (node.object.type !== Syntax.Identifier || node.object.name !== '__uv')
+    if (node.object.type !== Syntax.Identifier || node.object.name !== '__uvv2')
         return false;
     if (!['js', '$get', '$wrap', 'rewriteUrl'].includes(node.property.name))
         return false;

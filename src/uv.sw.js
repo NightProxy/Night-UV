@@ -1,11 +1,11 @@
-/*globals __uv$config*/
+/*globals __uvv2$config*/
 // Users must import the config (and bundle) prior to importing uv.sw.js
 // This is to allow us to produce a generic bundle with no hard-coded paths.
 
 /**
- * @type {import('../uv').UltravioletCtor}
+ * @type {import('../uv').UltravioletV2Ctor}
  */
-const Ultraviolet = self.Ultraviolet;
+const UltravioletV2 = self.UltravioletV2;
 const cspHeaders = [
     'cross-origin-embedder-policy',
     'cross-origin-opener-policy',
@@ -26,8 +26,8 @@ const cspHeaders = [
 ];
 const emptyMethods = ['GET', 'HEAD'];
 
-class UVServiceWorker extends Ultraviolet.EventEmitter {
-    constructor(config = __uv$config) {
+class UVv2ServiceWorker extends UltravioletV2.EventEmitter {
+    constructor(config = __uvv2$config) {
         super();
         if (!config.bare) config.bare = '/bare/';
         if (!config.prefix) config.prefix = '/service/';
@@ -37,9 +37,9 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
         ).map((str) => new URL(str, location).toString());
         this.address = addresses[~~(Math.random() * addresses.length)];
         /**
-         * @type {InstanceType<Ultraviolet['BareClient']>}
+         * @type {InstanceType<UltravioletV2['BareClient']>}
          */
-        this.bareClient = new Ultraviolet.BareClient(this.address);
+        this.bareClient = new UltravioletV2.BareClient(this.address);
     }
     /**
      *
@@ -56,29 +56,29 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
             if (!request.url.startsWith(location.origin + this.config.prefix))
                 return await fetch(request);
 
-            const ultraviolet = new Ultraviolet(this.config, this.address);
+            const ultravioletV2 = new UltravioletV2(this.config, this.address);
 
             if (typeof this.config.construct === 'function') {
-                this.config.construct(ultraviolet, 'service');
+                this.config.construct(ultravioletV2, 'service');
             }
 
-            const db = await ultraviolet.cookie.db();
+            const db = await ultravioletV2.cookie.db();
 
-            ultraviolet.meta.origin = location.origin;
-            ultraviolet.meta.base = ultraviolet.meta.url = new URL(
-                ultraviolet.sourceUrl(request.url)
+            ultravioletV2.meta.origin = location.origin;
+            ultravioletV2.meta.base = ultravioletV2.meta.url = new URL(
+                ultravioletV2.sourceUrl(request.url)
             );
 
             const requestCtx = new RequestContext(
                 request,
                 this,
-                ultraviolet,
+                ultravioletV2,
                 !emptyMethods.includes(request.method.toUpperCase())
                     ? await request.blob()
                     : null
             );
 
-            if (ultraviolet.meta.url.protocol === 'blob:') {
+            if (ultravioletV2.meta.url.protocol === 'blob:') {
                 requestCtx.blob = true;
                 requestCtx.base = requestCtx.url = new URL(
                     requestCtx.url.pathname
@@ -90,12 +90,12 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                 request.referrer.startsWith(location.origin)
             ) {
                 const referer = new URL(
-                    ultraviolet.sourceUrl(request.referrer)
+                    ultravioletV2.sourceUrl(request.referrer)
                 );
 
                 if (
                     requestCtx.headers.origin ||
-                    (ultraviolet.meta.url.origin !== referer.origin &&
+                    (ultravioletV2.meta.url.origin !== referer.origin &&
                         request.mode === 'cors')
                 ) {
                     requestCtx.headers.origin = referer.origin;
@@ -104,10 +104,10 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                 requestCtx.headers.referer = referer.href;
             }
 
-            const cookies = (await ultraviolet.cookie.getCookies(db)) || [];
-            const cookieStr = ultraviolet.cookie.serialize(
+            const cookies = (await ultravioletV2.cookie.getCookies(db)) || [];
+            const cookieStr = ultravioletV2.cookie.serialize(
                 cookies,
-                ultraviolet.meta,
+                ultravioletV2.meta,
                 false
             );
 
@@ -174,7 +174,7 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
             }
 
             if (responseCtx.headers.location) {
-                responseCtx.headers.location = ultraviolet.rewriteUrl(
+                responseCtx.headers.location = ultravioletV2.rewriteUrl(
                     responseCtx.headers.location
                 );
             }
@@ -204,17 +204,17 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
 
             if (responseCtx.headers['set-cookie']) {
                 Promise.resolve(
-                    ultraviolet.cookie.setCookies(
+                    ultravioletV2.cookie.setCookies(
                         responseCtx.headers['set-cookie'],
                         db,
-                        ultraviolet.meta
+                        ultravioletV2.meta
                     )
                 ).then(() => {
                     self.clients.matchAll().then(function (clients) {
                         clients.forEach(function (client) {
                             client.postMessage({
                                 msg: 'updateCookies',
-                                url: ultraviolet.meta.url.href,
+                                url: ultravioletV2.meta.url.href,
                             });
                         });
                     });
@@ -229,30 +229,30 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                         {
                             // craft a JS-safe list of arguments
                             const scripts = [
-                                ultraviolet.bundleScript,
-                                ultraviolet.clientScript,
-                                ultraviolet.configScript,
-                                ultraviolet.handlerScript,
+                                ultravioletV2.bundleScript,
+                                ultravioletV2.clientScript,
+                                ultravioletV2.configScript,
+                                ultravioletV2.handlerScript,
                             ]
                                 .map((script) => JSON.stringify(script))
                                 .join(',');
-                            responseCtx.body = `if (!self.__uv && self.importScripts) { ${ultraviolet.createJsInject(
+                            responseCtx.body = `if (!self.__uvv2 && self.importScripts) { ${ultravioletV2.createJsInject(
                                 this.address,
                                 this.bareClient.manifest,
-                                ultraviolet.cookie.serialize(
+                                ultravioletV2.cookie.serialize(
                                     cookies,
-                                    ultraviolet.meta,
+                                    ultravioletV2.meta,
                                     true
                                 ),
                                 request.referrer
                             )} importScripts(${scripts}); }\n`;
-                            responseCtx.body += ultraviolet.js.rewrite(
+                            responseCtx.body += ultravioletV2.js.rewrite(
                                 await response.text()
                             );
                         }
                         break;
                     case 'style':
-                        responseCtx.body = ultraviolet.rewriteCSS(
+                        responseCtx.body = ultravioletV2.rewriteCSS(
                             await response.text()
                         );
                         break;
@@ -260,7 +260,7 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                     case 'document':
                         if (
                             isHtml(
-                                ultraviolet.meta.url,
+                                ultravioletV2.meta.url,
                                 responseCtx.headers['content-type'] || ''
                             )
                         ) {
@@ -289,20 +289,20 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                                         modifiedResponse.slice(headPosition);
                                 }
                             }
-                            responseCtx.body = ultraviolet.rewriteHtml(
+                            responseCtx.body = ultravioletV2.rewriteHtml(
                                 modifiedResponse,
                                 {
                                     document: true,
-                                    injectHead: ultraviolet.createHtmlInject(
-                                        ultraviolet.handlerScript,
-                                        ultraviolet.bundleScript,
-                                        ultraviolet.clientScript,
-                                        ultraviolet.configScript,
+                                    injectHead: ultravioletV2.createHtmlInject(
+                                        ultravioletV2.handlerScript,
+                                        ultravioletV2.bundleScript,
+                                        ultravioletV2.clientScript,
+                                        ultravioletV2.configScript,
                                         this.address,
                                         this.bareClient.manifest,
-                                        ultraviolet.cookie.serialize(
+                                        ultravioletV2.cookie.serialize(
                                             cookies,
-                                            ultraviolet.meta,
+                                            ultravioletV2.meta,
                                             true
                                         ),
                                         request.referrer
@@ -337,10 +337,10 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
             return renderError(err, fetchedURL, this.address);
         }
     }
-    static Ultraviolet = Ultraviolet;
+    static UltravioletV2 = UltravioletV2;
 }
 
-self.UVServiceWorker = UVServiceWorker;
+self.UVv2ServiceWorker = UVv2ServiceWorker;
 
 class ResponseContext {
     /**
@@ -351,7 +351,7 @@ class ResponseContext {
     constructor(request, response) {
         this.request = request;
         this.raw = response;
-        this.ultraviolet = request.ultraviolet;
+        this.ultravioletV2 = request.ultravioletV2;
         this.headers = {};
         // eg set-cookie
         for (const key in response.rawHeaders)
@@ -375,12 +375,12 @@ class RequestContext {
     /**
      *
      * @param {Request} request
-     * @param {UVServiceWorker} worker
-     * @param {Ultraviolet} ultraviolet
+     * @param {UVv2ServiceWorker} worker
+     * @param {UltravioletV2} ultravioletV2
      * @param {BodyInit} body
      */
-    constructor(request, worker, ultraviolet, body = null) {
-        this.ultraviolet = ultraviolet;
+    constructor(request, worker, ultravioletV2, body = null) {
+        this.ultravioletV2 = ultravioletV2;
         this.request = request;
         this.headers = Object.fromEntries(request.headers.entries());
         this.method = request.method;
@@ -393,23 +393,23 @@ class RequestContext {
         this.blob = false;
     }
     get url() {
-        return this.ultraviolet.meta.url;
+        return this.ultravioletV2.meta.url;
     }
     set url(val) {
-        this.ultraviolet.meta.url = val;
+        this.ultravioletV2.meta.url = val;
     }
     get base() {
-        return this.ultraviolet.meta.base;
+        return this.ultravioletV2.meta.base;
     }
     set base(val) {
-        this.ultraviolet.meta.base = val;
+        this.ultravioletV2.meta.base = val;
     }
 }
 
 function isHtml(url, contentType = '') {
     return (
         (
-            Ultraviolet.mime.contentType(contentType || url.pathname) ||
+            UltravioletV2.mime.contentType(contentType || url.pathname) ||
             'text/html'
         ).split(';')[0] === 'text/html'
     );
@@ -476,7 +476,7 @@ function hostnameErrorTemplate(fetchedURL, bareServer) {
         '</ul>' +
         '<button id="reload">Reload</button>' +
         '<hr />' +
-        '<p><i>Ultraviolet v<span id="uvVersion"></span></i></p>' +
+        '<p><i>UltravioletV2 v<span id="uvVersion"></span></i></p>' +
         `<script src="${
             'data:application/javascript,' + encodeURIComponent(script)
         }"></script>` +
@@ -554,12 +554,12 @@ function errorTemplate(
         '<p>If you\'re the administrator of <b id="uvHostname"></b>, try:</p>' +
         '<ul>' +
         '<li>Restarting your Bare server</li>' +
-        '<li>Updating Ultraviolet</li>' +
-        '<li>Troubleshooting the error on the <a href="https://github.com/titaniumnetwork-dev/Ultraviolet" target="_blank">GitHub repository</a></li>' +
+        '<li>Updating UltravioletV2</li>' +
+        '<li>Troubleshooting the error on the <a href="https://github.com/titaniumnetwork-dev/UltravioletV2" target="_blank">GitHub repository</a></li>' +
         '</ul>' +
         '<button id="reload">Reload</button>' +
         '<hr />' +
-        '<p><i>Ultraviolet v<span id="uvVersion"></span></i></p>' +
+        '<p><i>UltravioletV2 v<span id="uvVersion"></span></i></p>' +
         `<script src="${
             'data:application/javascript,' + encodeURIComponent(script)
         }"></script>` +

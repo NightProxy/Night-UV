@@ -1,7 +1,7 @@
-/*global Ultraviolet*/
-self.__uv$config = {
+/*global UltravioletV2*/
+self.__uvv2$config = {
     /**
-     * The prefix for UV (Ultraviolet) resources.
+     * The prefix for UVv2 (UltravioletV2) resources.
      * @type {string}
      */
     prefix: '/~/uv/',
@@ -13,20 +13,20 @@ self.__uv$config = {
     bare: '/bare/',
 
     /**
-     * Function to encode URLs using Ultraviolet's XOR codec.
+     * Function to encode URLs using UltravioletV2's XOR codec.
      * @type {function}
      * @param {string} url - The URL to encode.
      * @returns {string} The encoded URL.
      */
-    encodeUrl: Ultraviolet.codec.xor.encode,
+    encodeUrl: UltravioletV2.codec.xor.encode,
 
     /**
-     * Function to decode URLs using Ultraviolet's XOR codec.
+     * Function to decode URLs using UltravioletV2's XOR codec.
      * @type {function}
      * @param {string} url - The URL to decode.
      * @returns {string} The decoded URL.
      */
-    decodeUrl: Ultraviolet.codec.xor.decode,
+    decodeUrl: UltravioletV2.codec.xor.decode,
 
     /**
      * The handler path.

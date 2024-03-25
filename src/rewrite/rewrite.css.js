@@ -1,10 +1,10 @@
 /**
- * @typedef {import('./index').default} Ultraviolet
+ * @typedef {import('./index').default} UltravioletV2
  */
 
 /**
  *
- * @param {Ultraviolet} ctx
+ * @param {UltravioletV2} ctx
  */
 function url(ctx) {
     const { css } = ctx;
@@ -18,7 +18,7 @@ function url(ctx) {
 
 /**
  *
- * @param {Ultraviolet} ctx
+ * @param {UltravioletV2} ctx
  */
 function importStyle(ctx) {
     const { css } = ctx;
