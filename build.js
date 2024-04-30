@@ -8,8 +8,8 @@ process.env.ULTRAVIOLET_VERSION = pkg.version;
 
 const isDevelopment = process.argv.includes('--min');
 
-await rimraf('UV/@');
-await mkdir('UV/@');
+await rimraf('UV/@/');
+await mkdir('UV/@/');
 
 // don't compile these files
 await copyFile('src/sw.js', 'UV/@/sw.js');
