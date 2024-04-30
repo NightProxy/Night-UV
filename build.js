@@ -20,10 +20,10 @@ await build({
     sourcemap: true,
     minify: isDevelopment,
     entryPoints: {
-        'bundle': './src/rewrite/index.js',
-        'client': './src/client/index.js',
-        'handler': './src/handler.js',
-        'sw-': './src/sw-.js',
+        '/@/bundle': './src/rewrite/index.js',
+        '/@/client': './src/client/index.js',
+        '/@/handler': './src/handler.js',
+        '/@/sw-': './src/sw-.js',
     },
     define: {
         'process.env.ULTRAVIOLET_VERSION': JSON.stringify(
