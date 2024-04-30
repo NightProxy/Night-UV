@@ -13,7 +13,7 @@ await mkdir('UV/@');
 
 // don't compile these files
 await copyFile('src/sw.js', 'UV/@/sw.js');
-await copyFile('src/uv.config.js', 'UV/@/config.js');
+await copyFile('src/config.js', 'UV/@/config.js');
 
 await build({
     platform: 'browser',
