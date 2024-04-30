@@ -8,22 +8,22 @@ process.env.ULTRAVIOLET_VERSION = pkg.version;
 
 const isDevelopment = process.argv.includes('--min');
 
-await rimraf('UV/@/');
-await mkdir('UV/@/');
+await rimraf('UV');
+await mkdir('UV');
 
 // don't compile these files
-await copyFile('src/sw.js', 'UV/@/sw.js');
-await copyFile('src/config.js', 'UV/@/config.js');
+await copyFile('src/sw.js', 'UV/sw.js');
+await copyFile('src/config.js', 'UV/config.js');
 
 await build({
     platform: 'browser',
     sourcemap: true,
     minify: isDevelopment,
     entryPoints: {
-        '/@/bundle': './src/rewrite/index.js',
-        '/@/client': './src/client/index.js',
-        '/@/handler': './src/handler.js',
-        '/@/sw-': './src/sw-.js',
+        'bundle': './src/rewrite/index.js',
+        'client': './src/client/index.js',
+        'handler': './src/handler.js',
+        'sw-': './src/sw-.js',
     },
     define: {
         'process.env.ULTRAVIOLET_VERSION': JSON.stringify(
