@@ -1,7 +1,3 @@
-/*globals __uv$config*/
-// Users must import the config (and bundle) prior to importing uv.sw.js
-// This is to allow us to produce a generic bundle with no hard-coded paths.
-
 /**
  * @type {import('../uv').UltravioletCtor}
  */
@@ -30,13 +26,8 @@ const emptyMethods = ['GET', 'HEAD'];
 class UVServiceWorker extends Ultraviolet.EventEmitter {
     constructor(config = __uv$config) {
         super();
-        if (!config.bare) config.bare = '/bare/';
         if (!config.prefix) config.prefix = '/service/';
         this.config = config;
-        const addresses = (
-            Array.isArray(config.bare) ? config.bare : [config.bare]
-        ).map((str) => new URL(str, location).toString());
-        this.address = addresses[~~(Math.random() * addresses.length)];
         /**
          * @type {InstanceType<Ultraviolet['BareClient']>}
          */
@@ -125,7 +116,7 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                 ? 'blob:' + location.origin + requestCtx.url.pathname
                 : requestCtx.url;
 
-            const response = await this.bareClient.fetch(fetchedURL, {
+            let Barereq = new Request(fetchedURL, {
                 headers: requestCtx.headers,
                 method: requestCtx.method,
                 body: requestCtx.body,
@@ -136,6 +127,35 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                         : requestCtx.mode,
                 cache: requestCtx.cache,
                 redirect: requestCtx.redirect,
+                proxyIp: this.config.proxyIp,
+                proxyPort: this.config.proxyPort,
+            });
+
+            if (typeof this.config.middleware === 'function') {
+                const middleware = this.config.middleware(Barereq);
+
+                if (middleware instanceof Response) {
+                    return middleware;
+                } else if (middleware instanceof Request) {
+                    // The middleware returned a modified request.
+                    // You can continue processing the modified request.
+                    Barereq = middleware;
+                }
+            }
+
+            const response = await this.bareClient.fetch(Barereq, {
+                headers: requestCtx.headers,
+                method: requestCtx.method,
+                body: requestCtx.body,
+                credentials: requestCtx.credentials,
+                mode:
+                    location.origin !== requestCtx.address.origin
+                        ? 'cors'
+                        : requestCtx.mode,
+                cache: requestCtx.cache,
+                redirect: requestCtx.redirect,
+                proxyIp: this.config.proxyIp,
+                proxyPort: this.config.proxyPort,
             });
 
             const responseCtx = new ResponseContext(requestCtx, response);
@@ -185,8 +205,8 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                         ultraviolet.meta
                     )
                 ).then(() => {
-                    self.clients.matchAll().then(function (clients) {
-                        clients.forEach(function (client) {
+                    self.clients.matchAll().then(function(clients) {
+                        clients.forEach(function(client) {
                             client.postMessage({
                                 msg: 'updateCookies',
                                 url: ultraviolet.meta.url.href,
@@ -213,7 +233,7 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                                 .join(',');
                             responseCtx.body = `if (!self.__uv && self.importScripts) { ${ultraviolet.createJsInject(
                                 this.address,
-                                this.bareClient.manifest,
+                                this.bareClient.manfiest,
                                 ultraviolet.cookie.serialize(
                                     cookies,
                                     ultraviolet.meta,
@@ -239,8 +259,33 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                                 responseCtx.headers['content-type'] || ''
                             )
                         ) {
+                            let modifiedResponse = await response.text();
+
+                            if (typeof this.config.inject === 'function') {
+                                const headPosition =
+                                    modifiedResponse.indexOf('</head>');
+                                const upperHead =
+                                    modifiedResponse.indexOf('</HEAD>');
+                                // const bodyPosition = modifiedResponse.indexOf('</body>');
+                                // const upperBody = modifiedResponse.indexOf('</BODY>');
+
+                                const inject = await this.config.inject(
+                                    new URL(fetchedURL)
+                                );
+
+                                if (headPosition !== -1 || upperHead !== -1) {
+                                    // Create a modified copy of responseBody
+                                    modifiedResponse =
+                                        modifiedResponse.slice(
+                                            0,
+                                            headPosition
+                                        ) +
+                                        `${await inject}` +
+                                        modifiedResponse.slice(headPosition);
+                                }
+                            }
                             responseCtx.body = ultraviolet.rewriteHtml(
-                                await response.text(),
+                                modifiedResponse,
                                 {
                                     document: true,
                                     injectHead: ultraviolet.createHtmlInject(
@@ -297,7 +342,7 @@ class ResponseContext {
     /**
      *
      * @param {RequestContext} request
-     * @param {import("@mercuryworkshop/bare-mux").BareResponseFetch} response
+     * @param {import("@tomphttp/bare-client").BareResponseFetch} response
      */
     constructor(request, response) {
         this.request = request;
@@ -431,8 +476,7 @@ function hostnameErrorTemplate(fetchedURL, bareServer) {
         '<button id="reload">Reload</button>' +
         '<hr />' +
         '<p><i>Ultraviolet v<span id="uvVersion"></span></i></p>' +
-        `<script src="${
-            'data:application/javascript,' + encodeURIComponent(script)
+        `<script src="${'data:application/javascript,' + encodeURIComponent(script)
         }"></script>` +
         '</body>' +
         '</html>'
@@ -517,8 +561,7 @@ function errorTemplate(
         '<button id="reload">Reload</button>' +
         '<hr />' +
         '<p><i>Ultraviolet v<span id="uvVersion"></span></i></p>' +
-        `<script src="${
-            'data:application/javascript,' + encodeURIComponent(script)
+        `<script src="${'data:application/javascript,' + encodeURIComponent(script)
         }"></script>` +
         '</body>' +
         '</html>'
@@ -526,7 +569,7 @@ function errorTemplate(
 }
 
 /**
- * @typedef {import("@mercuryworkshop/bare-mux").BareError} BareError
+ * @typedef {import("@tomphttp/bare-client").BareError} BareError
  */
 
 /**
@@ -568,7 +611,6 @@ function renderError(err, fetchedURL, bareServer) {
     if (crossOriginIsolated) {
         headers['Cross-Origin-Embedder-Policy'] = 'require-corp';
     }
-
     if (isBareError(err)) {
         status = err.status;
         title = 'Error communicating with the Bare server';
@@ -594,7 +636,7 @@ function renderError(err, fetchedURL, bareServer) {
         ),
         {
             status,
-            headers: headers
+            headers: headers,
         }
     );
 }

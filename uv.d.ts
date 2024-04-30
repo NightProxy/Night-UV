@@ -26,6 +26,8 @@ export type UVDecode = (input: Coded) => string;
  * This interface defines the configuration options for the Ultraviolet library.
  */
 export interface UVConfig {
+    middleware?: MiddlewareFunction;
+    inject?: InjectFunction;
     /**
      * The prefix for Ultraviolet to listen on.
      * This prefix will be used to create the URL for the service worker and the client script.

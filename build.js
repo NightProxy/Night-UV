@@ -6,24 +6,24 @@ import { build } from 'esbuild';
 const pkg = JSON.parse(await readFile('package.json'));
 process.env.ULTRAVIOLET_VERSION = pkg.version;
 
-const isDevelopment = process.argv.includes('--dev');
+const isDevelopment = process.argv.includes('--min');
 
-await rimraf('dist');
-await mkdir('dist');
+await rimraf('UV');
+await mkdir('UV');
 
 // don't compile these files
-await copyFile('src/sw.js', 'dist/sw.js');
-await copyFile('src/uv.config.js', 'dist/uv.config.js');
+await copyFile('src/sw.js', 'dist/@/sw.js');
+await copyFile('src/uv.config.js', 'dist/@/config.js');
 
 await build({
     platform: 'browser',
     sourcemap: true,
-    minify: !isDevelopment,
+    minify: isDevelopment,
     entryPoints: {
-        'uv.bundle': './src/rewrite/index.js',
-        'uv.client': './src/client/index.js',
-        'uv.handler': './src/uv.handler.js',
-        'uv.sw': './src/uv.sw.js',
+        'bundle': './src/rewrite/index.js',
+        'client': './src/client/index.js',
+        'handler': './src/handler.js',
+        'sw-': './src/sw-.js',
     },
     define: {
         'process.env.ULTRAVIOLET_VERSION': JSON.stringify(
@@ -32,5 +32,5 @@ await build({
     },
     bundle: true,
     logLevel: 'info',
-    outdir: 'dist/',
+    outdir: 'UV/',
 });
