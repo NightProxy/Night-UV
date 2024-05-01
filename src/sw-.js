@@ -26,12 +26,17 @@ const emptyMethods = ['GET', 'HEAD'];
 class UVServiceWorker extends Ultraviolet.EventEmitter {
     constructor(config = __uv$config) {
         super();
+        if (!config.bare) config.bare = '/bare/';
         if (!config.prefix) config.prefix = '/service/';
         this.config = config;
+        const addresses = (
+            Array.isArray(config.bare) ? config.bare : [config.bare]
+        ).map((str) => new URL(str, location).toString());
+        this.address = addresses[~~(Math.random() * addresses.length)];
         /**
          * @type {InstanceType<Ultraviolet['BareClient']>}
          */
-        this.bareClient = new Ultraviolet.BareClient();
+        this.bareClient = new Ultraviolet.BareClient(this.address);
     }
     /**
      *
