@@ -8,12 +8,12 @@ process.env.ULTRAVIOLET_VERSION = pkg.version;
 
 const isDevelopment = process.argv.includes('--min');
 
-await rimraf('UV');
-await mkdir('UV');
+await rimraf('@');
+await mkdir('@');
 
 // don't compile these files
-await copyFile('src/sw.js', 'UV/sw.js');
-await copyFile('src/config.js', 'UV/config.js');
+await copyFile('src/sw.js', '@/sw.js');
+await copyFile('src/config.js', '@/config.js');
 
 await build({
     platform: 'browser',
@@ -31,6 +31,5 @@ await build({
         ),
     },
     bundle: true,
-    logLevel: 'info',
-    outdir: 'UV/',
+    outdir: '@/',
 });

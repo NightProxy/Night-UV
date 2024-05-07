@@ -5,19 +5,10 @@
  * Ideally, this will be registered under the scope in uv.config.js so it will not need to be modified.
  * However, if a user changes the location of uv.bundle.js/uv.config.js or sw.js is not relative to them, they will need to modify this script locally.
  */
-importScripts('/UV/bundle.js');
-importScripts('/UV/config.js');
-importScripts(__uv$config.sw || '/UV/sw-.js');
+importScripts('/@/bundle.js');
+importScripts('/@/config.js');
+importScripts(__uv$config.sw || '/@/sw-.js');
 
-const uv = new UVServiceWorker();
+const sw = new UVServiceWorker();
 
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        (async ()=>{
-            if(event.request.url.startsWith(location.origin + __uv$config.prefix)) {
-                return await uv.fetch(event);
-            }
-            return await fetch(event.request);
-        })()
-    );
-});
+self.addEventListener('fetch', (event) => event.respondWith(sw.fetch(event)));

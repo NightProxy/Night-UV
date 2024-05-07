@@ -1,8 +1,11 @@
+/*globals __uv$config*/
+// Users must import the config (and bundle) prior to importing uv.sw.js
+// This is to allow us to produce a generic bundle with no hard-coded paths.
+
 /**
  * @type {import('../uv').UltravioletCtor}
  */
 const Ultraviolet = self.Ultraviolet;
-
 const cspHeaders = [
     'cross-origin-embedder-policy',
     'cross-origin-opener-policy',
@@ -132,8 +135,6 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                         : requestCtx.mode,
                 cache: requestCtx.cache,
                 redirect: requestCtx.redirect,
-                proxyIp: this.config.proxyIp,
-                proxyPort: this.config.proxyPort,
             });
 
             if (typeof this.config.middleware === 'function') {
@@ -159,11 +160,10 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                         : requestCtx.mode,
                 cache: requestCtx.cache,
                 redirect: requestCtx.redirect,
-                proxyIp: this.config.proxyIp,
-                proxyPort: this.config.proxyPort,
             });
 
             const responseCtx = new ResponseContext(requestCtx, response);
+
             const resEvent = new HookEvent(responseCtx, null, null);
 
             this.emit('beforemod', resEvent);
@@ -210,8 +210,8 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                         ultraviolet.meta
                     )
                 ).then(() => {
-                    self.clients.matchAll().then(function(clients) {
-                        clients.forEach(function(client) {
+                    self.clients.matchAll().then(function (clients) {
+                        clients.forEach(function (client) {
                             client.postMessage({
                                 msg: 'updateCookies',
                                 url: ultraviolet.meta.url.href,
@@ -238,7 +238,7 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
                                 .join(',');
                             responseCtx.body = `if (!self.__uv && self.importScripts) { ${ultraviolet.createJsInject(
                                 this.address,
-                                this.bareClient.manfiest,
+                                this.bareClient.manifest,
                                 ultraviolet.cookie.serialize(
                                     cookies,
                                     ultraviolet.meta,
@@ -323,7 +323,6 @@ class UVServiceWorker extends Ultraviolet.EventEmitter {
 
             this.emit('response', resEvent);
             if (resEvent.intercepted) return resEvent.returnValue;
-
             return new Response(responseCtx.body, {
                 headers: responseCtx.headers,
                 status: responseCtx.status,
@@ -463,9 +462,6 @@ function hostnameErrorTemplate(fetchedURL, bareServer) {
         '<head>' +
         "<meta charset='utf-8' />" +
         '<title>Error</title>' +
-        '<style>' +
-        '* { background-color: white }' +
-        '</style>' +
         '</head>' +
         '<body>' +
         '<h1>This site can’t be reached</h1>' +
@@ -481,7 +477,8 @@ function hostnameErrorTemplate(fetchedURL, bareServer) {
         '<button id="reload">Reload</button>' +
         '<hr />' +
         '<p><i>Ultraviolet v<span id="uvVersion"></span></i></p>' +
-        `<script src="${'data:application/javascript,' + encodeURIComponent(script)
+        `<script src="${
+            'data:application/javascript,' + encodeURIComponent(script)
         }"></script>` +
         '</body>' +
         '</html>'
@@ -535,9 +532,6 @@ function errorTemplate(
         '<head>' +
         "<meta charset='utf-8' />" +
         '<title>Error</title>' +
-        '<style>' +
-        '* { background-color: white }' +
-        '</style>' +
         '</head>' +
         '<body>' +
         "<h1 id='errorTitle'></h1>" +
@@ -566,7 +560,8 @@ function errorTemplate(
         '<button id="reload">Reload</button>' +
         '<hr />' +
         '<p><i>Ultraviolet v<span id="uvVersion"></span></i></p>' +
-        `<script src="${'data:application/javascript,' + encodeURIComponent(script)
+        `<script src="${
+            'data:application/javascript,' + encodeURIComponent(script)
         }"></script>` +
         '</body>' +
         '</html>'
@@ -610,12 +605,7 @@ function renderError(err, fetchedURL, bareServer) {
      * @type {string}
      */
     let message;
-    let headers = {
-        'content-type': 'text/html',
-    };
-    if (crossOriginIsolated) {
-        headers['Cross-Origin-Embedder-Policy'] = 'require-corp';
-    }
+
     if (isBareError(err)) {
         status = err.status;
         title = 'Error communicating with the Bare server';
@@ -641,7 +631,9 @@ function renderError(err, fetchedURL, bareServer) {
         ),
         {
             status,
-            headers: headers,
+            headers: {
+                'content-type': 'text/html',
+            },
         }
     );
 }

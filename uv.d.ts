@@ -1,6 +1,5 @@
 const Ultraviolet: typeof import('./src/rewrite/index').default;
 const UVClient: typeof import('./src/client/index').default;
-
 export type UltravioletCtor = typeof Ultraviolet;
 export type UVClientCtor = typeof UVClient;
 
@@ -16,11 +15,14 @@ type Coded = string;
 export type UVEncode = (input: Coded) => string;
 
 /**
- * The URL encoder.
+ * The URL encoder.     
  * Decoders will have to decode the input first using decodeURLComponent.
  */
 export type UVDecode = (input: Coded) => string;
 
+
+export type MiddlewareFunction = (request: Request) => Request | Response;
+export type InjectFunction = (url: URL ) => string;
 /**
  * The Ultraviolet configuration object.
  * This interface defines the configuration options for the Ultraviolet library.
@@ -28,6 +30,19 @@ export type UVDecode = (input: Coded) => string;
 export interface UVConfig {
     middleware?: MiddlewareFunction;
     inject?: InjectFunction;
+    /**
+     * The Bare server(s) to use.
+     * If an array is specified, the service worker will randomly select a server to use.
+     * The selected server will be used for the duration of the session.
+     * Both relative and absolute paths are accepted. Relative paths are resolved to the current URL.
+     * @example // A Bare server running on the subdomain `bare.`, automatically correcting the apex record:
+     * `${location.protocol}//bare.${location.host.replace(/^www\./, "")}
+     * @example `http://localhost:8080/`
+     * @example `http://localhost:8080/bare/`
+     * @defaultValue `/bare/`
+     * @see {@link|https://github.com/tomphttp/specifications/blob/master/BareServer.md}
+     */
+    bare?: string | string[];
     /**
      * The prefix for Ultraviolet to listen on.
      * This prefix will be used to create the URL for the service worker and the client script.
@@ -90,4 +105,5 @@ export interface UVConfig {
      * @defaultValue `Ultraviolet.codec.xor.decode`
      */
     decodeUrl?: UVDecode;
+
 }
