@@ -6,7 +6,7 @@ import { build } from 'esbuild';
 const pkg = JSON.parse(await readFile('package.json'));
 process.env.ULTRAVIOLET_VERSION = pkg.version;
 
-const isDevelopment = process.argv.includes('--min');
+const isMinified = process.argv.includes('--min');
 
 await rimraf('@');
 await mkdir('@');
@@ -14,16 +14,19 @@ await mkdir('@');
 // don't compile these files
 await copyFile('src/sw.js', '@/sw.js');
 await copyFile('src/config.js', '@/config.js');
+await copyFile('src/style/style.css', '@/style/style.css');
+await copyFile('src/style/bg.jpg', '@/style/bg.jpg');
+
 
 await build({
     platform: 'browser',
     sourcemap: true,
-    minify: isDevelopment,
+    minify: isMinified,
     entryPoints: {
         'bundle': './src/rewrite/index.js',
         'client': './src/client/index.js',
         'handler': './src/handler.js',
-        'sw-': './src/sw-.js',
+        'sw': './src/sw-.js',
     },
     define: {
         'process.env.ULTRAVIOLET_VERSION': JSON.stringify(

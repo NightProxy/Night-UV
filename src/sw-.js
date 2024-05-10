@@ -462,24 +462,26 @@ function hostnameErrorTemplate(fetchedURL, bareServer) {
         '<head>' +
         "<meta charset='utf-8' />" +
         '<title>Error</title>' +
+        "<link rel='stylesheet' href='../style/style.css' />" +
         '</head>' +
-        '<body>' +
-        '<h1>This site can’t be reached</h1>' +
+        '<body style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center">' +
+        '<h1 style="color: var(--text-color); font-size: 400%">404</h1>' +
+        '<p style="font-size: 150%; color: var(--text-color);">Page did not load correctly</p>' +
         '<hr />' +
-        '<p><b id="remoteHostname"></b>’s server IP address could not be found.</p>' +
-        '<p>Try:</p>' +
-        '<ul>' +
+        '<p style="color: var(--text-color);"><b id=remoteHostname></b>Something went wrong.</p>' +
+        '<p>If this issue persists please report this issue to our <a href="https://discord.lightgo.app">Discord</a></p>' +
+        '<p>You can try:</p>' +
+        '<ul style="text-align: left;">' +
         '<li>Verifying you entered the correct address</li>' +
         '<li>Clearing the site data</li>' +
-        '<li>Contacting <b id="uvHostname"></b>\'s administrator</li>' +
-        "<li>Verifying the <a id='bareServer' title='Bare server'>Bare server</a> isn't censored</li>" +
+        '<li>Contacting our administrators/developers</li>' +
         '</ul>' +
-        '<button id="reload">Reload</button>' +
+        '<button id=reload>Reload</button>' +
         '<hr />' +
-        '<p><i>Ultraviolet v<span id="uvVersion"></span></i></p>' +
-        `<script src="${
-            'data:application/javascript,' + encodeURIComponent(script)
-        }"></script>` +
+        '<p>Ultraviolet version 2</p>' +
+        '<script src="' +
+        'data:application/javascript,' + encodeURIComponent(script) +
+        '"></script>' +
         '</body>' +
         '</html>'
     );
@@ -506,7 +508,7 @@ function errorTemplate(
     bareServer
 ) {
     // produced by bare-server-node
-    if (message === 'The specified host could not be resolved.')
+    if (message === "Couldn't access the host or site.")
         return hostnameErrorTemplate(fetchedURL, bareServer);
 
     // turn script into a data URI so we don't have to escape any HTML values
@@ -532,8 +534,11 @@ function errorTemplate(
         '<head>' +
         "<meta charset='utf-8' />" +
         '<title>Error</title>' +
+        "<link rel='stylesheet' href='../style/style.css' />" +
         '</head>' +
         '<body>' +
+        "<div style='margin-top:20vh;'>" +
+        '<center>' +
         "<h1 id='errorTitle'></h1>" +
         '<hr />' +
         '<p>Failed to load <b id="fetchedURL"></b></p>' +
@@ -544,25 +549,27 @@ function errorTemplate(
         '</tbody></table>' +
         '<textarea id="errorTrace" cols="40" rows="10" readonly></textarea>' +
         '<p>Try:</p>' +
-        '<ul>' +
         '<li>Checking your internet connection</li>' +
         '<li>Verifying you entered the correct address</li>' +
         '<li>Clearing the site data</li>' +
         '<li>Contacting <b id="uvHostname"></b>\'s administrator</li>' +
         "<li>Verify the <a id='bareServer' title='Bare server'>Bare server</a> isn't censored</li>" +
-        '</ul>' +
         '<p>If you\'re the administrator of <b id="uvHostname"></b>, try:</p>' +
-        '<ul>' +
-        '<li>Restarting your Bare server</li>' +
-        '<li>Updating Ultraviolet</li>' +
-        '<li>Troubleshooting the error on the <a href="https://github.com/titaniumnetwork-dev/Ultraviolet" target="_blank">GitHub repository</a></li>' +
+        '<p style="color: var(--text-color);"><b id=remoteHostname></b>Something went wrong.</p>' +
+        '<p>If this issue persists please report this issue to our <a href="https://discord.lightgo.app">Discord</a></p>' +
+        '<p>You can try:</p>' +
+        '<ul style="text-align: left;">' +
+        '<li>Verifying you entered the correct address</li>' +
+        '<li>Clearing the site data</li>' +
+        '<li>Contacting our administrators/developers</li>' +
         '</ul>' +
         '<button id="reload">Reload</button>' +
         '<hr />' +
         '<p><i>Ultraviolet v<span id="uvVersion"></span></i></p>' +
-        `<script src="${
-            'data:application/javascript,' + encodeURIComponent(script)
+        '</center>' +
+        `<script src="${'data:application/javascript,' + encodeURIComponent(script)
         }"></script>` +
+        '</div>'+
         '</body>' +
         '</html>'
     );
@@ -608,13 +615,13 @@ function renderError(err, fetchedURL, bareServer) {
 
     if (isBareError(err)) {
         status = err.status;
-        title = 'Error communicating with the Bare server';
+        title = 'Bare server communication error';
         message = err.body.message;
         code = err.body.code;
         id = err.body.id;
     } else {
         status = 500;
-        title = 'Error processing your request';
+        title = "Couldn't correctly process your request";
         message = 'Internal Server Error';
         code = err instanceof Error ? err.name : 'UNKNOWN';
     }
